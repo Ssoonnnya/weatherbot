@@ -2,6 +2,8 @@
 
 use Telegram\Bot\Commands\HelpCommand;
 use App\Commands\StartCommand;
+use App\Commands\WeatherCommand;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -128,6 +130,7 @@ return [
     'commands' => [
         // HelpCommand::class,
         StartCommand::class,
+        WeatherCommand::class,
     ],
 
     /*
