@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Telegram\Bot\BotsManager;
 use GuzzleHttp\Client;
+use Telegram\Bot\Actions;
+
 
 class WebhookController extends Controller
 {
@@ -30,14 +32,18 @@ class WebhookController extends Controller
 
         $bot = $this->botsManager->bot();
 
-        if($message->isType('location'))
-        {
-            $location = $message-> location;
-            $chat = $message-> chat;
+        if ($message->isType('location')) {
+            $location = $message->location;
+            $chat = $message->chat;
 
-            $weatherInfo = $this->weatherInformation($location->longitude, $location->latitude);
+            $bot->sendChatAction([
+                'chat_id' => $chat->id,
+                'action' => Actions::TYPING,
+            ]);
 
-            $bot-> sendMessage([
+            $weatherInfo = $this->weatherInformation($location->latitude, $location->longitude);
+
+            $bot->sendMessage([
                 'chat_id' => $chat->id,
                 'text' => $weatherInfo,
             ]);
@@ -56,15 +62,16 @@ class WebhookController extends Controller
         $data = json_decode($response->getBody(), false, 512, JSON_THROW_ON_ERROR);
 
         $city = $data->name . "\n\n";
-        $temp = $data->main->temp . "℃\n";
-        $pressure = $data->main->pressure . "℃\n";
-        $humidity = $data->main->humidity . "℃\n";
+        $temp = $data->main->temp;
+        $tempC = $temp / 273 . "℃\n";
+        $pressure = $data->main->pressure . " hPa\n";
+        $humidity = $data->main->humidity . " %\n";
 
         $weatherInfo = 'Місто : ' . $city;
-        $weatherInfo .= 'Температура повітря : ' . $temp;
+        $weatherInfo .= 'Температура повітря : ' . $tempC;
         $weatherInfo .= 'Атмосферній тиск : ' . $pressure;
         $weatherInfo .= 'Вологість повітря : ' . $humidity;
 
-        return $response;
+        return $weatherInfo;
     }
 }
